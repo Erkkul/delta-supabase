@@ -65,8 +65,10 @@ function showNoteForm(noteId = null) {
   const titleInput = document.getElementById('note-title');
   const contentInput = document.getElementById('note-content');
   
-  // Réinitialiser le formulaire
-  form.reset();
+  // Réinitialiser manuellement les champs du formulaire
+  noteIdInput.value = '';
+  titleInput.value = '';
+  contentInput.value = '';
   
   // Si on édite une note existante
   if (noteId) {
@@ -76,8 +78,6 @@ function showNoteForm(noteId = null) {
       titleInput.value = note.title;
       contentInput.value = note.content || '';
     }
-  } else {
-    noteIdInput.value = '';
   }
   
   form.style.display = 'block';
