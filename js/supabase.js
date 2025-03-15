@@ -3,7 +3,8 @@ const supabaseUrl = 'https://rcmuejvaxqzbynsezjkk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjbXVlanZheHF6Ynluc2V6amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwNjU2NjcsImV4cCI6MjA1NzY0MTY2N30.R4qdgjcGIcG3FovE9duZe-yH6Q0asNMIxbCHaWNI6Wc';
 
 // Initialisation du client Supabase
-const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
+// Nous utilisons la variable globale définie par le CDN
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 // Fonction pour afficher les messages toast
 function showToast(message, type = '') {
