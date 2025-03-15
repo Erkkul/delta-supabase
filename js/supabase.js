@@ -2,9 +2,9 @@
 const supabaseUrl = 'https://rcmuejvaxqzbynsezjkk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjbXVlanZheHF6Ynluc2V6amtrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIwNjU2NjcsImV4cCI6MjA1NzY0MTY2N30.R4qdgjcGIcG3FovE9duZe-yH6Q0asNMIxbCHaWNI6Wc';
 
-// Initialisation du client Supabase
-// Le script CDN expose la classe Supabase via window.supabase
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+// Le CDN unpkg de Supabase expose la classe Supabase globalement
+const { createClient } = supabase;
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 // Fonction pour afficher les messages toast
 function showToast(message, type = '') {
