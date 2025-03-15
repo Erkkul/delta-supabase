@@ -3,8 +3,13 @@ let notes = [];
 
 // Charger les notes de l'utilisateur
 async function loadNotes() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    console.error('loadNotes: currentUser is not defined');
+    return;
+  }
 
+  console.log('Chargement des notes pour l\'utilisateur:', currentUser.id);
+  
   try {
     const { data, error } = await supabaseClient
       .from('notes')
@@ -14,6 +19,7 @@ async function loadNotes() {
     
     if (error) throw error;
     
+    console.log('Notes chargées:', data);
     notes = data || [];
     renderNotes();
   } catch (error) {
@@ -105,6 +111,12 @@ function hideNoteForm() {
 
 // Enregistrer une note (création ou modification)
 async function saveNote() {
+  if (!currentUser) {
+    console.error('saveNote: currentUser is not defined');
+    showToast('Erreur: Utilisateur non connecté', 'error');
+    return;
+  }
+  
   const noteId = document.getElementById('note-id').value;
   const title = document.getElementById('note-title').value.trim();
   const content = document.getElementById('note-content').value.trim();
@@ -117,7 +129,7 @@ async function saveNote() {
   try {
     if (noteId) {
       // Mise à jour d'une note existante
-      const { error } = await supabaseClient
+      const { data, error } = await supabaseClient
         .from('notes')
         .update({
           title,
@@ -127,18 +139,29 @@ async function saveNote() {
         .eq('id', noteId);
       
       if (error) throw error;
+      console.log('Note mise à jour:', data);
       showToast('Note mise à jour avec succès', 'success');
     } else {
       // Création d'une nouvelle note
-      const { error } = await supabaseClient
-        .from('notes')
-        .insert([{
-          title,
-          content,
-          user_id: currentUser.id
-        }]);
+      console.log('Création de note avec user_id:', currentUser.id);
+      const newNote = {
+        title,
+        content,
+        user_id: currentUser.id
+      };
       
-      if (error) throw error;
+      console.log('Objet note à insérer:', newNote);
+      
+      const { data, error } = await supabaseClient
+        .from('notes')
+        .insert([newNote]);
+      
+      if (error) {
+        console.error('Erreur d\'insertion:', error);
+        throw error;
+      }
+      
+      console.log('Note créée:', data);
       showToast('Note créée avec succès', 'success');
     }
     
