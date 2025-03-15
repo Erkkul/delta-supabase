@@ -6,7 +6,7 @@ async function loadNotes() {
   if (!currentUser) return;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('notes')
       .select('*')
       .order('created_at', { ascending: false });
@@ -102,7 +102,7 @@ async function saveNote() {
   try {
     if (noteId) {
       // Mise à jour d'une note existante
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('notes')
         .update({
           title,
@@ -115,7 +115,7 @@ async function saveNote() {
       showToast('Note mise à jour avec succès', 'success');
     } else {
       // Création d'une nouvelle note
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from('notes')
         .insert([{
           title,
@@ -147,7 +147,7 @@ async function deleteNote(noteId) {
   }
   
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('notes')
       .delete()
       .eq('id', noteId);
