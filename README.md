@@ -24,9 +24,18 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 - `js/auth.js` : Fonctions d'authentification
 - `js/notes.js` : Fonctions de gestion des notes
 - `css/styles.css` : Styles de l'application
-- `supabase-schema.sql` : Script SQL de migration pour Supabase
+- `supabase-schema.sql` : Script SQL pour créer les tables
+- `supabase-trigger.sql` : Script SQL pour configurer le déclencheur de création de profil
 
 ## Configuration Supabase
 
-Pour utiliser cette application, vous devez configurer votre projet Supabase avec les tables et politiques de sécurité appropriées.
-Vous trouverez le script SQL nécessaire dans le fichier `supabase-schema.sql`.
+Pour utiliser cette application, suivez ces étapes dans Supabase :
+
+1. Connectez-vous à votre projet Supabase (https://app.supabase.com)
+2. Accédez à l'éditeur SQL dans la section "SQL Editor"
+3. Exécutez d'abord le script `supabase-schema.sql` pour créer les tables et les politiques
+4. Ensuite, exécutez le script `supabase-trigger.sql` pour configurer le déclencheur qui crée automatiquement des profils utilisateurs
+
+### Pourquoi un déclencheur ?
+
+Le déclencheur `on_auth_user_created` permet de créer automatiquement un profil utilisateur chaque fois qu'un nouvel utilisateur s'inscrit, ce qui résout les problèmes de sécurité RLS (Row Level Security) qui pourraient empêcher les nouveaux utilisateurs de créer leur profil.
