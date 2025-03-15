@@ -60,20 +60,11 @@ async function signUp(email, password, username) {
     
     if (error) throw error;
     
-    currentUser = data.user;
+    // Le déclencheur PostgreSQL s'occupe de créer le profil
+    // Aucun besoin d'insérer manuellement dans la table profiles
     
-    // Créer un profil pour l'utilisateur
-    const { error: profileError } = await supabaseClient
-      .from('profiles')
-      .insert([
-        { id: currentUser.id, username, avatar_url: null }
-      ]);
-      
-    if (profileError) throw profileError;
-    
-    await fetchUserProfile();
-    showApp();
     showToast('Inscription réussie! Vérifiez votre email pour confirmer votre compte.', 'success');
+    showAuth(); // Rediriger vers la page de connexion
   } catch (error) {
     console.error('Erreur d\'inscription:', error.message);
     showToast(`Erreur d'inscription: ${error.message}`, 'error');
