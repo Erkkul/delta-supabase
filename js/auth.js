@@ -3,7 +3,7 @@ let currentUser = null;
 
 // Vérifier si l'utilisateur est connecté au chargement
 async function checkUser() {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUser = session.user;
     await fetchUserProfile();
@@ -16,7 +16,7 @@ async function checkUser() {
 // Recuperer le profil utilisateur
 async function fetchUserProfile() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('id', currentUser.id)
@@ -38,7 +38,7 @@ async function fetchUserProfile() {
 // Connexion
 async function login(email, password) {
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     
     if (error) throw error;
     
@@ -56,14 +56,14 @@ async function login(email, password) {
 async function signUp(email, password, username) {
   try {
     // Créer un utilisateur
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) throw error;
     
     currentUser = data.user;
     
     // Créer un profil pour l'utilisateur
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseClient
       .from('profiles')
       .insert([
         { id: currentUser.id, username, avatar_url: null }
@@ -83,7 +83,7 @@ async function signUp(email, password, username) {
 // Déconnexion
 async function logout() {
   try {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
     
     if (error) throw error;
     
