@@ -6,7 +6,12 @@ async function checkUser() {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) {
     currentUser = session.user;
-    await fetchUserProfile();
+    try {
+      await fetchUserProfile();
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil, mais continuation de la session:', error.message);
+      // Continuer même si la récupération du profil échoue
+    }
     showApp();
   } else {
     showAuth();
@@ -16,22 +21,53 @@ async function checkUser() {
 // Recuperer le profil utilisateur
 async function fetchUserProfile() {
   try {
-    const { data, error } = await supabaseClient
+    console.log('Recherche du profil pour l\'utilisateur ID:', currentUser.id);
+    
+    // Vérifier d'abord si le profil existe
+    const { data, error, count } = await supabaseClient
       .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
+      .select('*', { count: 'exact' })
+      .eq('id', currentUser.id);
 
     if (error) throw error;
+    
+    console.log('Profils trouvés:', data ? data.length : 0);
 
-    if (data) {
-      document.getElementById('username').textContent = data.username || currentUser.email;
+    // Si aucun profil n'est trouvé, on en crée un manuellement
+    if (!data || data.length === 0) {
+      console.log('Aucun profil trouvé, création d\'un nouveau profil');
+      const { error: createError } = await supabaseClient
+        .from('profiles')
+        .insert([{ 
+          id: currentUser.id, 
+          username: currentUser.email,
+          avatar_url: null 
+        }]);
+      
+      if (createError) throw createError;
+      
+      // Récupérer le profil nouvellement créé
+      const { data: newProfile, error: fetchError } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();  // Utiliser maybeSingle au lieu de single
+        
+      if (fetchError) throw fetchError;
+      
+      if (newProfile) {
+        document.getElementById('username').textContent = newProfile.username || currentUser.email;
+      } else {
+        document.getElementById('username').textContent = currentUser.email;
+      }
     } else {
-      document.getElementById('username').textContent = currentUser.email;
+      // Profil trouvé
+      document.getElementById('username').textContent = data[0].username || currentUser.email;
     }
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error.message);
-    document.getElementById('username').textContent = currentUser.email;
+    document.getElementById('username').textContent = currentUser ? currentUser.email : 'Utilisateur';
+    throw error;  // Propager l'erreur pour permettre à la fonction appelante de la gérer
   }
 }
 
@@ -43,7 +79,12 @@ async function login(email, password) {
     if (error) throw error;
     
     currentUser = data.user;
-    await fetchUserProfile();
+    try {
+      await fetchUserProfile();
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil après connexion:', error.message);
+      // Continuer même si la récupération du profil échoue
+    }
     showApp();
     showToast('Connexion réussie', 'success');
   } catch (error) {
@@ -60,8 +101,8 @@ async function signUp(email, password, username) {
     
     if (error) throw error;
     
-    // Le déclencheur PostgreSQL s'occupe de créer le profil
-    // Aucun besoin d'insérer manuellement dans la table profiles
+    // Le déclencheur PostgreSQL devrait s'occuper de créer le profil,
+    // mais on pourrait ajouter une gestion de secours ici si nécessaire
     
     showToast('Inscription réussie! Vérifiez votre email pour confirmer votre compte.', 'success');
     showAuth(); // Rediriger vers la page de connexion
