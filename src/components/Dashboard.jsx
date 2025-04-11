@@ -1,27 +1,61 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard = () => {
-  const { user, userDetails, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { user, userDetails, signOut, testAuth } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [authenticating, setAuthenticating] = useState(true);
   const [stats, setStats] = useState({
     totalNotes: 0,
     lastLogin: ''
   });
   const [error, setError] = useState(null);
 
-  // Afficher l'identifiant de l'utilisateur pour débogage
-  console.log('Dashboard rendering for user:', user?.email);
-
+  // Vérifier l'authentification au chargement
   useEffect(() => {
-    // Simuler le chargement des données (court délai pour démo)
-    const timer = setTimeout(() => {
+    const checkAuth = async () => {
       try {
-        // Générer des stats factices
+        console.log('Dashboard: checking authentication');
+        setAuthenticating(true);
+        
+        const currentUser = await testAuth();
+        if (!currentUser) {
+          console.log('Dashboard: no authenticated user, redirecting to login');
+          navigate('/login', { replace: true });
+          return;
+        }
+        
+        console.log('Dashboard: user is authenticated:', currentUser.email);
+      } catch (error) {
+        console.error('Dashboard auth check error:', error);
+        navigate('/login', { replace: true });
+      } finally {
+        setAuthenticating(false);
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, testAuth]);
+
+  // Charger les données du tableau de bord
+  useEffect(() => {
+    if (authenticating) return; // Attendre que l'auth soit vérifiée
+    
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        console.log('Loading dashboard data');
+        
+        // Simulation de chargement des données
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         setStats({
           totalNotes: Math.floor(Math.random() * 10),
           lastLogin: new Date().toLocaleString()
         });
+        
         console.log('Dashboard data loaded successfully');
       } catch (err) {
         console.error('Error loading dashboard data:', err);
@@ -29,18 +63,28 @@ const Dashboard = () => {
       } finally {
         setLoading(false);
       }
-    }, 300); // Réduit à 300ms pour accélérer le chargement
+    };
+    
+    loadDashboardData();
+  }, [authenticating]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  // Si toujours en cours d'authentification, afficher le loader
+  if (authenticating) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Vérification de votre session...</p>
+      </div>
+    );
+  }
 
   // S'assurer que user est bien défini
   if (!user) {
-    console.log('No user data in Dashboard - returning to login');
+    console.log('Dashboard: user is not defined even after auth check');
     return (
       <div className="dashboard-error">
         <p>Session expirée ou utilisateur non authentifié. Veuillez vous reconnecter.</p>
-        <button onClick={() => window.location.href = '/login'} className="action-button">
+        <button onClick={() => navigate('/login')} className="action-button">
           Retour à la connexion
         </button>
       </div>
@@ -102,6 +146,7 @@ const Dashboard = () => {
             </div>
             <div className="user-details">
               <p><strong>Email:</strong> {user?.email || 'Non disponible'}</p>
+              <p><strong>ID utilisateur:</strong> {user?.id || 'Non disponible'}</p>
               {userDetails ? (
                 <>
                   <p><strong>Prénom:</strong> {userDetails.first_name || 'Non renseigné'}</p>
