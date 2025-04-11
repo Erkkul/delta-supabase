@@ -1,26 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const PrivateRoute = ({ children }) => {
-  const { user, loading: authLoading } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    // Dès que l'authentification est terminée et que l'utilisateur est défini (ou non),
-    // nous mettons fin au chargement
-    if (!authLoading) {
-      // Un petit délai pour une transition plus fluide
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [authLoading]);
-
-  // Pendant le chargement de l'auth, afficher un indicateur de chargement
-  if (isLoading) {
+  // Afficher un indicateur de chargement pendant la vérification de l'authentification
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
