@@ -5,8 +5,9 @@ import PrivateRoute from './components/PrivateRoute';
 import SignUp from './components/SignUp';
 import Login from './components/Login';
 import ResetPassword from './components/ResetPassword';
-import Dashboard from './components/Dashboard'; // À créer selon vos besoins
+import Dashboard from './components/Dashboard';
 import './styles/auth.css';
+import './styles/dashboard.css';
 
 function App() {
   return (
