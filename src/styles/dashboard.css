@@ -171,6 +171,28 @@
   min-height: 300px;
 }
 
+/* Styles for error states */
+.dashboard-error {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-top: 2rem;
+  color: #d32f2f;
+}
+
+.dashboard-error p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.dashboard-error .action-button {
+  width: 200px;
+  margin: 0 auto;
+  display: block;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .dashboard-container {
