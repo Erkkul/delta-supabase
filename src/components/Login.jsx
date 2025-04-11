@@ -1,44 +1,82 @@
-import React, { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialisation du client Supabase
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
-  // États pour stocker les valeurs des champs du formulaire
+  const navigate = useNavigate();
+  const { user, supabase, testAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [redirecting, setRedirecting] = useState(false);
 
-  // Fonction pour gérer la soumission du formulaire
+  // Vérifier si l'utilisateur est déjà connecté
+  useEffect(() => {
+    const checkLoggedIn = async () => {
+      try {
+        console.log('Checking if already logged in...');
+        const currentUser = await testAuth();
+        
+        if (currentUser) {
+          console.log('User already logged in:', currentUser.email);
+          setRedirecting(true);
+          navigate('/dashboard');
+        } else {
+          console.log('No user logged in, showing login form');
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      }
+    };
+    
+    checkLoggedIn();
+  }, [navigate, testAuth]);
+
+  // Si l'utilisateur est déjà connecté, rediriger
+  useEffect(() => {
+    if (user) {
+      console.log('User detected in auth context, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Connexion avec Supabase Auth
+      console.log('Attempting login with email:', email);
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
+        console.error('Login error:', signInError);
         throw signInError;
       }
 
-      // Redirection vers la page d'accueil ou le tableau de bord
-      window.location.href = '/dashboard';
+      console.log('Login successful, session:', data.session);
+      console.log('Redirecting to dashboard after login');
+      setRedirecting(true);
+      navigate('/dashboard');
     } catch (error) {
       setError(error.message || 'Une erreur est survenue lors de la connexion.');
-      console.error('Erreur de connexion:', error);
-    } finally {
+      console.error('Login error:', error);
       setLoading(false);
     }
   };
+
+  if (redirecting) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Redirection en cours...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="login-container">
