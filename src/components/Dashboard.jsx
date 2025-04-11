@@ -68,6 +68,17 @@ const Dashboard = () => {
     loadDashboardData();
   }, [authenticating]);
 
+  // Gérer la déconnexion
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Utiliser navigate pour rediriger après déconnexion
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    }
+  };
+
   // Si toujours en cours d'authentification, afficher le loader
   if (authenticating) {
     return (
@@ -112,7 +123,7 @@ const Dashboard = () => {
       <div className="dashboard-container">
         <header className="dashboard-header">
           <h1>Tableau de bord</h1>
-          <button className="logout-button" onClick={signOut}>
+          <button className="logout-button" onClick={handleSignOut}>
             Se déconnecter
           </button>
         </header>
@@ -131,7 +142,7 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Tableau de bord</h1>
-        <button className="logout-button" onClick={signOut}>
+        <button className="logout-button" onClick={handleSignOut}>
           Se déconnecter
         </button>
       </header>
