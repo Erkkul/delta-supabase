@@ -10,14 +10,14 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    // Simuler le chargement des données
+    // Simuler le chargement des données (court délai pour démo)
     const timer = setTimeout(() => {
       setStats({
         totalNotes: Math.floor(Math.random() * 10),
         lastLogin: new Date().toLocaleString()
       });
       setLoading(false);
-    }, 1000);
+    }, 500); // Réduit à 500ms pour accélérer le chargement
 
     return () => clearTimeout(timer);
   }, []);
