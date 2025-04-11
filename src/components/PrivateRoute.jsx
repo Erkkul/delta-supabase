@@ -56,7 +56,7 @@ const PrivateRoute = ({ children }) => {
       clearTimeout(timer);
       console.log('PrivateRoute unmounted');
     };
-  }, [user, loading, initialized, navigate, testAuth]);
+  }, [user, loading, initialized, navigate, testAuth, checking]);
 
   // Effet pour observer les changements d'état d'auth
   useEffect(() => {
