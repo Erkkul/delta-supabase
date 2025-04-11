@@ -8,6 +8,7 @@ import ResetPassword from './components/ResetPassword';
 import Dashboard from './components/Dashboard';
 import './styles/auth.css';
 import './styles/dashboard.css';
+import './styles/home.css';
 
 // Composant page d'accueil
 const HomePage = () => {
