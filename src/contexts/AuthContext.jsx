@@ -41,19 +41,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Effet pour écouter les changements d'état d'authentification
+  // Vérifier la session utilisateur au chargement initial
   useEffect(() => {
-    // Vérifier l'état de session actuel
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Définir loading à true au début
+        setLoading(true);
+        
+        const { data, error } = await supabase.auth.getSession();
+        
         if (error) {
           throw error;
         }
 
-        if (session?.user) {
-          setUser(session.user);
-          const details = await fetchUserDetails(session.user.id);
+        if (data.session?.user) {
+          setUser(data.session.user);
+          const details = await fetchUserDetails(data.session.user.id);
           setUserDetails(details);
         } else {
           setUser(null);
@@ -64,6 +67,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setUserDetails(null);
       } finally {
+        // Terminer le chargement dans tous les cas
         setLoading(false);
       }
     };
@@ -81,6 +85,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
           setUserDetails(null);
         }
+        // Toujours terminer le chargement après le changement d'état
         setLoading(false);
       }
     );
@@ -94,6 +99,8 @@ export const AuthProvider = ({ children }) => {
   // Fonction de déconnexion
   const signOut = async () => {
     try {
+      // Indiquer le chargement pendant la déconnexion
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw error;
@@ -102,6 +109,8 @@ export const AuthProvider = ({ children }) => {
       setUserDetails(null);
     } catch (error) {
       console.error('Erreur de déconnexion:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
