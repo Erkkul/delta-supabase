@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }) => {
   // Debug: stocker la dernière session pour débogage
   const [lastSession, setLastSession] = useState(null);
 
-  // Fonction pour obtenir les détails utilisateur de la table personnalisée
+  // Function pour obtenir les détails utilisateur de la table personnalisée
   const fetchUserDetails = async (userId) => {
     console.log('Fetching user details for ID:', userId);
     try {
@@ -64,8 +64,8 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setUserDetails(null);
       setLastSession(null);
-      // Rediriger vers la page de connexion après déconnexion
-      window.location.href = '/login';
+      // Ne pas utiliser window.location.href pour permettre au routeur de gérer la redirection
+      // La redirection sera gérée par le composant qui appelle signOut
     } catch (error) {
       console.error('Sign out error:', error);
       setAuthError(error.message);
