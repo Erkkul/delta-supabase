@@ -20,13 +20,17 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
-  const [loading, setLoading] = useState(false); // Commence à false pour éviter le loader initial
+  const [loading, setLoading] = useState(true); // Commence à true pour s'assurer qu'on vérifie d'abord la session
   const [initialized, setInitialized] = useState(false);
+  const [authError, setAuthError] = useState(null);
+
+  // Debug: stocker la dernière session pour débogage
+  const [lastSession, setLastSession] = useState(null);
 
   // Fonction pour obtenir les détails utilisateur de la table personnalisée
   const fetchUserDetails = async (userId) => {
+    console.log('Fetching user details for ID:', userId);
     try {
-      console.log('Fetching user details for ID:', userId);
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -46,14 +50,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Déconnecter l'utilisateur
+  const signOut = async () => {
+    console.log('Signing out...');
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
+      console.log('Sign out successful');
+      setUser(null);
+      setUserDetails(null);
+      setLastSession(null);
+      // Rediriger vers la page de connexion après déconnexion
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Sign out error:', error);
+      setAuthError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Vérifier la session utilisateur au chargement initial
   useEffect(() => {
     const checkSession = async () => {
       console.log('Checking session...');
       try {
-        // Définir loading à true au début
         setLoading(true);
         
+        // 1. Vérifier la session actuelle
         const { data, error } = await supabase.auth.getSession();
         console.log('Session data:', data);
         
@@ -61,6 +89,9 @@ export const AuthProvider = ({ children }) => {
           console.error('Session error:', error);
           throw error;
         }
+
+        // Stocker la session pour débogage
+        setLastSession(data.session);
 
         if (data.session?.user) {
           console.log('User found in session:', data.session.user.email);
@@ -74,7 +105,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Error fetching user details:', detailsError);
           }
         } else {
-          console.log('No user in session');
+          console.log('No user in session, redirecting to login');
           setUser(null);
           setUserDetails(null);
         }
@@ -82,8 +113,8 @@ export const AuthProvider = ({ children }) => {
         console.error('Session check error:', error);
         setUser(null);
         setUserDetails(null);
+        setAuthError(error.message);
       } finally {
-        // Toujours terminer le chargement et marquer comme initialisé
         setLoading(false);
         setInitialized(true);
         console.log('Auth initialization complete');
@@ -96,8 +127,10 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        setLastSession(session); // Stocker pour débogage
         
         if (session?.user) {
+          console.log('User authenticated in auth state change:', session.user.email);
           setUser(session.user);
           try {
             const details = await fetchUserDetails(session.user.id);
@@ -106,10 +139,11 @@ export const AuthProvider = ({ children }) => {
             console.error('Error fetching user details on auth change:', detailsError);
           }
         } else {
+          console.log('No user in auth state change');
           setUser(null);
           setUserDetails(null);
         }
-        // Toujours terminer le chargement après le changement d'état
+        
         setLoading(false);
       }
     );
@@ -121,24 +155,18 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  // Fonction de déconnexion
-  const signOut = async () => {
-    console.log('Signing out...');
+  // Exécuter un test de session pour vérifier s'il y a un utilisateur dès que possible
+  const testAuth = async () => {
     try {
-      // Indiquer le chargement pendant la déconnexion
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        throw error;
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      console.log('Auth test result:', currentUser ? 'User found' : 'No user');
+      if (currentUser) {
+        console.log('Test auth user:', currentUser.email);
       }
-      console.log('Sign out successful');
-      setUser(null);
-      setUserDetails(null);
+      return currentUser;
     } catch (error) {
-      console.error('Sign out error:', error);
-    } finally {
-      setLoading(false);
+      console.error('Auth test error:', error);
+      return null;
     }
   };
 
@@ -149,10 +177,12 @@ export const AuthProvider = ({ children }) => {
     loading,
     initialized,
     signOut,
-    supabase
+    supabase,
+    authError,
+    lastSession,
+    testAuth
   };
 
-  // Afficher le contenu seulement quand l'initialisation est terminée
   return (
     <AuthContext.Provider value={value}>
       {children}
