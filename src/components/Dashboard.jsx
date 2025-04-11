@@ -8,29 +8,81 @@ const Dashboard = () => {
     totalNotes: 0,
     lastLogin: ''
   });
+  const [error, setError] = useState(null);
+
+  // Afficher l'identifiant de l'utilisateur pour débogage
+  console.log('Dashboard rendering for user:', user?.email);
 
   useEffect(() => {
     // Simuler le chargement des données (court délai pour démo)
     const timer = setTimeout(() => {
-      setStats({
-        totalNotes: Math.floor(Math.random() * 10),
-        lastLogin: new Date().toLocaleString()
-      });
-      setLoading(false);
-    }, 500); // Réduit à 500ms pour accélérer le chargement
+      try {
+        // Générer des stats factices
+        setStats({
+          totalNotes: Math.floor(Math.random() * 10),
+          lastLogin: new Date().toLocaleString()
+        });
+        console.log('Dashboard data loaded successfully');
+      } catch (err) {
+        console.error('Error loading dashboard data:', err);
+        setError('Impossible de charger les données du tableau de bord');
+      } finally {
+        setLoading(false);
+      }
+    }, 300); // Réduit à 300ms pour accélérer le chargement
 
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) {
+  // S'assurer que user est bien défini
+  if (!user) {
+    console.log('No user data in Dashboard - returning to login');
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner"></div>
-        <p>Chargement des données...</p>
+      <div className="dashboard-error">
+        <p>Session expirée ou utilisateur non authentifié. Veuillez vous reconnecter.</p>
+        <button onClick={() => window.location.href = '/login'} className="action-button">
+          Retour à la connexion
+        </button>
       </div>
     );
   }
 
+  // Affichage pendant le chargement
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <header className="dashboard-header">
+          <h1>Tableau de bord</h1>
+        </header>
+        <div className="dashboard-loading">
+          <div className="loading-spinner"></div>
+          <p>Chargement des données...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage en cas d'erreur
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <header className="dashboard-header">
+          <h1>Tableau de bord</h1>
+          <button className="logout-button" onClick={signOut}>
+            Se déconnecter
+          </button>
+        </header>
+        <div className="dashboard-error">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()} className="action-button">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage normal du tableau de bord
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -45,15 +97,18 @@ const Dashboard = () => {
           <h2>Informations utilisateur</h2>
           <div className="user-info-content">
             <div className="avatar-placeholder">
-              {userDetails && userDetails.first_name ? userDetails.first_name.charAt(0) : user?.email.charAt(0)}
+              {userDetails && userDetails.first_name ? userDetails.first_name.charAt(0).toUpperCase() : 
+               user?.email ? user.email.charAt(0).toUpperCase() : '?'}
             </div>
             <div className="user-details">
-              <p><strong>Email:</strong> {user?.email}</p>
-              {userDetails && (
+              <p><strong>Email:</strong> {user?.email || 'Non disponible'}</p>
+              {userDetails ? (
                 <>
                   <p><strong>Prénom:</strong> {userDetails.first_name || 'Non renseigné'}</p>
                   <p><strong>Nom:</strong> {userDetails.last_name || 'Non renseigné'}</p>
                 </>
+              ) : (
+                <p><strong>Profil:</strong> Informations complémentaires non disponibles</p>
               )}
               <p><strong>Dernière connexion:</strong> {stats.lastLogin}</p>
             </div>
